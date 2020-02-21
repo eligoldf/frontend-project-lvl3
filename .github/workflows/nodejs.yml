@@ -15,6 +15,4 @@ jobs:
       run: make lint
     - name: build
       run: make build
-      env:
-        CC_TEST_REPORTER_ID: 168ee6fa1d39c13d104674a13d5e227eec291bd1a40ad0c5b2c08f34b630401f
 
