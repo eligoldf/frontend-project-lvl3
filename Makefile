@@ -2,7 +2,7 @@ install:
 	npm install
 
 publish:
-	npm publish --dry-run
+	npm publish
 
 lint:
 	npx eslint .
@@ -13,3 +13,6 @@ develop:
 build:
 	rm -rf dist
 	NODE_ENV=production npx webpack
+
+start:
+	npm run-script start-server

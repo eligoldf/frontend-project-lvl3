@@ -1,17 +1,25 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Rss Reader</title>
+    <title>RSS Reader</title>
   </head>
-  <body>
-    <div class="jumbotron">
-        <div class="form-group">
-            <label for="rssReader">Rss Reader</label>
-            <input type="text" class="form-control" id="rssInput">
+  <body class="bg-light">
+    <div class="jumbotron jumbotron-fluid bg-dark">
+      <div class="container-fluid">
+        <h1 class="text-center text-white">RSS Reader</h1>
+        <form id="form" class="form-row">
+          <div class="col-12 col-md-9 mt-4 ">
+            <input id="urlInput" class="form-control form-control-lg" type="url" placeholder="Enter your URL">
           </div>
-          <button type="submit" class="btn btn-primary">Submit</button>
+          <div class="col-4 col-md-2 mt-4">
+            <button id="submitBtn" type="submit" class="btn btn-secondary btn-lg w-100 disabled" disabled="">Submit</button>
+          </div>
+        </form>
+      </div>
+     </div>
+    </div>
     </div>
   </body>
 </html>
