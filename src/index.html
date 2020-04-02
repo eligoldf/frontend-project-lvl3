@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>RSS Reader</title>
+  </head>
+  <body class="bg-light">
+    <div class="jumbotron jumbotron-fluid bg-dark">
+      <div class="container-fluid">
+        <h1 class="text-center text-white">RSS Reader</h1>
+        <form id="form" class="form-row">
+          <div class="col-12 col-md-10 mt-4 ">
+            <input id="urlInput" name="url" class="form-control" type="url" placeholder="Enter URL">
+          </div>
+          <div class="col-4 col-md-2 mt-4">
+            <button id="submitBtn" class="btn btn-secondary w-100" disabled="">Submit</button>
+          </div>
+          <div id="errorDiv"></div>
+        </form>
+      </div>
+     </div>
+     <div class="row mb-3 mx-auto">
+      <div class="col-md-4" id="feedDiv"></div>
+      <div class="col-md-8" id="postDiv"></div>
+    </div>
+    </div>
+    </div>
+  </body>
+</html>

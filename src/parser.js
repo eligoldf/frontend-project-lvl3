@@ -6,14 +6,10 @@ export default (data) => {
     .map((post) => ({
       title: post.querySelector('title').textContent,
       link: post.querySelector('link').textContent,
-      // pubDate: post.querySelector('pubDate').textContent,
     }));
 
-  const feedData = {
-    title: doc.querySelector('title').textContent,
-    description: doc.querySelector('description').textContent,
-    posts,
-  };
+  const title = doc.querySelector('title').textContent;
+  const description = doc.querySelector('description').textContent;
 
-  return feedData;
+  return { title, description, posts };
 };

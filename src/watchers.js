@@ -1,85 +1,82 @@
 import { watch } from 'melanke-watchjs';
 
 export default (state) => {
-  const { feed, form } = state;
-  const submitButton = document.getElementById('submitBtn');
-  const urlInput = document.getElementById('input');
-  const jumbotron = document.getElementsByClassName('.jjumbotron');
+  const { form } = state;
+  const submitBtn = document.getElementById('submitBtn');
+  const urlInput = document.getElementById('urlInput');
+  const errorDiv = document.getElementById('errorDiv');
+  const feedDiv = document.getElementById('feedDiv');
+  const postDiv = document.getElementById('postDiv');
+
+  watch(form, 'errors', () => {
+    const errors = [...form.errors];
+
+    if (errors.length === 0 || form.urlValue === '') {
+      return;
+    }
+
+    errors.forEach((error) => {
+      errorDiv.classList.add('alert', 'alert-light', 'mt-2');
+      errorDiv.setAttribute('role', 'alert');
+      errorDiv.innerHTML = error;
+      urlInput.classList.add('is-invalid');
+    });
+  });
 
   watch(form, 'processState', () => {
-    const { processState } = state.form;
+    const { processState } = form;
     switch (processState) {
       case 'filling':
-        submitButton.disabled = false;
+        submitBtn.disabled = false;
         break;
       case 'processing':
-        submitButton.disabled = true;
+        submitBtn.disabled = true;
         break;
       case 'processed':
-        urlInput.value = '';
-        submitButton.disabled = true;
+        submitBtn.disabled = true;
         break;
       default:
-        throw new Error(`Unknown state process ${processState}`);
+        throw new Error(`Unknown state: ${processState}`);
     }
   });
 
   watch(form, 'valid', () => {
-    submitButton.disabled = !state.form.valid;
+    submitBtn.disabled = !form.valid;
   });
 
-
-  watch(state.form, 'errors', () => {
-    const errEl = form.nextElementSibling;
-    const errMsg = Object.values(form.errors).flat();
-
-    if (errEl) {
-      urlInput.classList.remove('is-ivalid');
-      errEl.remove();
-    }
-
-    const feedbackMsg = document.createElement('div');
-    feedbackMsg.classList.add('invalid-feedback');
-    feedbackMsg.innerHTML = errMsg;
-    urlInput.classList.add('is-invalid');
-    urlInput.after(feedbackMsg);
+  watch(form, 'field', () => {
+    urlInput.value = form.urlValue;
   });
 
-  watch(form, 'urlValue', () => {
-    urlInput.value = form.urlInput;
-  });
+  watch(state, 'feedList', () => {
+    const feedList = [state.feedList];
+    const feeds = document.createElement('ul');
+    feeds.classlist.add('list-group');
 
-  watch(feed.data, 'items', () => {
-    const { names, items } = feed.data;
-    names.forEach((channel) => {
-      const feedEl = document.getElementById('channel.id');
-      if (feedEl) {
-        feedEl.remove();
-      }
-
-      const feedChannel = document.createElement('div');
-      feedChannel.id = channel.id;
-      const title = document.createElement('h2');
-      title.innerHTML = channel.title;
-      feedChannel.appendChild('title');
-
-      const description = document.createElement('p');
-      description.innerHTML = channel.description;
-      feedChannel.appendChild('description');
-
-      const news = document.createElement('ul');
-      const [rssFeed] = items.filter((item) => item.id === channel.id);
-      rssFeed.links.forEach((item) => {
-        const listItem = document.createElement('li');
-        news.appendChild(listItem);
-        const url = document.createElement('a');
-        news.appendChild(listItem);
-        url.innerHTML = item.title;
-        url.href = item.link;
-        listItem.appendChild(url);
-      });
-      feedChannel.appendChild(news);
-      jumbotron.after(feedChannel);
+    feedList.forEach(({ title, description }) => {
+      feeds.classlist.add('list-group');
+      const feedEl = document.createElement('li');
+      feedEl.classList.add('list-group-item');
+      const feedTitle = document.createElement('h4');
+      feedTitle.textContent = title;
+      const feedDescription = document.createElement('div');
+      feedDescription.textContent = description;
+      feedEl.append(feedTitle, feedDescription);
+      feeds.append(feedEl);
     });
+    feedDiv.appendChild(feeds);
+  });
+
+  watch(state, 'postList', () => {
+    const postList = [state.postList];
+    const posts = document.createElement('ul');
+    posts.classlist.add('list-group');
+
+    postList.forEach((post) => {
+      const postEl = document.createElement('li');
+      postEl.classlist.add('list-group-item');
+      postEl.innerHTML = `<a href${posts.link}>${post.title}</a>`;
+    });
+    postDiv.appendChild(posts);
   });
 };
