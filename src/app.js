@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import * as yup from 'yup';
+// import i18next from 'i18next';
 import axios from 'axios';
+// import resources from './locales';
 import rssParser from './parser';
 import watch from './watchers';
 
@@ -13,41 +15,46 @@ const validateUrl = (currentUrl, urlList) => {
     })
     .then(() => yup.mixed().notOneOf(urlList).validate(currentUrl))
     .catch(() => {
-      errors.push('This Url is already in the list');
+      errors.push('This URL is already in the list');
     })
-    // .then(() => errors);
-    .then(() => new Promise((resolve) => { resolve(errors); }));
+    .then(() => errors);
 };
 
 const isValidUrlState = (state) => {
-  const { form, urlsList } = state;
+  const { form, urlList } = state;
   const currentUrl = form.urlValue;
-  validateUrl(currentUrl, urlsList)
+  validateUrl(currentUrl, urlList)
     .then((errors) => {
       form.errors = errors;
       form.valid = _.isEqual(errors, []);
     });
 };
 
-const getFeed = (currentUrl, state) => {
-  const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-
+const updateFeed = (currentUrl, data, state) => {
+  const { title, description, posts } = data;
   const {
-    feedList, postList, form, urlList,
+    feedList, postList, urlList,
   } = state;
+  const id = _.uniqueId();
+  urlList.push({ id, currentUrl });
+  feedList.push({ id, title, description });
+  postList.push(...posts);
+};
 
+const getFeed = (currentUrl, state) => {
+  const corsProxy = 'https://cors-anywhere.herokuapp.com';
+  const { form } = state;
   axios.get(`${corsProxy}/${currentUrl}`)
     .then(({ data }) => {
-      const { title, description, posts } = rssParser(data);
-      urlList.push(currentUrl);
-      feedList.push(title, description);
-      postList.push(posts);
+      const feedData = rssParser(data);
+      form.processState = 'processed';
+      updateFeed(currentUrl, feedData, state);
       form.valid = true;
-      form.processState = 'processed';
     })
-    .catch((error) => {
+    .catch(() => {
+      form.valid = false;
+      form.errors.push('There must be a Network problem');
       form.processState = 'processed';
-      form.errors.push(error);
     });
 };
 
@@ -75,6 +82,7 @@ export default () => {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const currentUrl = state.form.urlValue;
+    console.log(currentUrl);
     state.form.processState = 'processing';
     state.form.valid = true;
     getFeed(currentUrl, state);

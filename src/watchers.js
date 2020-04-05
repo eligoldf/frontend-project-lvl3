@@ -34,6 +34,7 @@ export default (state) => {
         break;
       case 'processed':
         submitBtn.disabled = true;
+        urlInput.value = '';
         break;
       default:
         throw new Error(`Unknown state: ${processState}`);
@@ -49,12 +50,12 @@ export default (state) => {
   });
 
   watch(state, 'feedList', () => {
-    const feedList = [state.feedList];
+    const { feedList } = state;
     const feeds = document.createElement('ul');
-    feeds.classlist.add('list-group');
+    feeds.classList.add('list-group');
 
-    feedList.forEach(({ title, description }) => {
-      feeds.classlist.add('list-group');
+    feedList.forEach((feed) => {
+      const { title, description } = feed;
       const feedEl = document.createElement('li');
       feedEl.classList.add('list-group-item');
       const feedTitle = document.createElement('h4');
@@ -64,19 +65,22 @@ export default (state) => {
       feedEl.append(feedTitle, feedDescription);
       feeds.append(feedEl);
     });
-    feedDiv.appendChild(feeds);
+    feedDiv.append(feeds);
   });
 
   watch(state, 'postList', () => {
-    const postList = [state.postList];
-    const posts = document.createElement('ul');
-    posts.classlist.add('list-group');
+    const { postList } = state;
+    console.log(postList);
+    // const { id } = posts;
+    const postsUl = document.createElement('ul');
+    postsUl.classList.add('list-group');
 
-    postList.forEach((post) => {
+    postList.forEach(({ link, title }) => {
       const postEl = document.createElement('li');
-      postEl.classlist.add('list-group-item');
-      postEl.innerHTML = `<a href${posts.link}>${post.title}</a>`;
+      postEl.classList.add('list-group-item');
+      postEl.innerHTML = `<a href${link}>${title}</a>`;
+      postsUl.append(postEl);
     });
-    postDiv.appendChild(posts);
+    postDiv.append(postsUl);
   });
 };
