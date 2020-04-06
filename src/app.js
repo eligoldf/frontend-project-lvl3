@@ -38,7 +38,8 @@ const updateFeed = (currentUrl, data, state) => {
   const id = _.uniqueId();
   urlList.push({ id, currentUrl });
   feedList.push({ id, title, description });
-  postList.push(...posts);
+  postList.push({ id, posts });
+  console.log(postList);
 };
 
 const getFeed = (currentUrl, state) => {

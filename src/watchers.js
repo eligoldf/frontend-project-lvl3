@@ -54,31 +54,27 @@ export default (state) => {
     const feeds = document.createElement('ul');
     feeds.classList.add('list-group');
 
-    feedList.forEach((feed) => {
-      const { title, description } = feed;
+    feedList.forEach(({ title, description }) => {
       const feedEl = document.createElement('li');
       feedEl.classList.add('list-group-item');
-      const feedTitle = document.createElement('h4');
-      feedTitle.textContent = title;
-      const feedDescription = document.createElement('div');
-      feedDescription.textContent = description;
-      feedEl.append(feedTitle, feedDescription);
+      feedEl.innerHTML = `<h4>${title}</h4>
+                    <div>${description}</div>`;
       feeds.append(feedEl);
     });
     feedDiv.append(feeds);
   });
 
   watch(state, 'postList', () => {
-    const { postList } = state;
-    console.log(postList);
-    // const { id } = posts;
+    const { postList: [{ posts }] } = state;
     const postsUl = document.createElement('ul');
+
     postsUl.classList.add('list-group');
 
-    postList.forEach(({ link, title }) => {
+    posts.forEach(({ link, title }) => {
+      console.log(link, title);
       const postEl = document.createElement('li');
       postEl.classList.add('list-group-item');
-      postEl.innerHTML = `<a href${link}>${title}</a>`;
+      postEl.innerHTML = `<a href="${link}">${title}</a>`;
       postsUl.append(postEl);
     });
     postDiv.append(postsUl);
