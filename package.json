@@ -1,6 +1,6 @@
 {
   "name": "rssreader",
-  "version": "0.1.1",
+  "version": "1.0.1",
   "description": "RSS reader",
   "main": "index.js",
   "scripts": {

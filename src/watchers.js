@@ -1,26 +1,22 @@
 import { watch } from 'melanke-watchjs';
 
-export default (state) => {
+export default (state, t) => {
   const { form } = state;
   const submitBtn = document.getElementById('submitBtn');
   const urlInput = document.getElementById('urlInput');
   const errorDiv = document.getElementById('errorDiv');
-  const feedDiv = document.getElementById('feedDiv');
-  const postDiv = document.getElementById('postDiv');
 
   watch(form, 'errors', () => {
-    const errors = [...form.errors];
+    const { errors } = form;
 
     if (errors.length === 0 || form.urlValue === '') {
-      return;
+      urlInput.classList.remove('is-invalid');
+      urlInput.innerHTML = '';
     }
-
-    errors.forEach((error) => {
-      errorDiv.classList.add('alert', 'alert-light', 'mt-2');
-      errorDiv.setAttribute('role', 'alert');
-      errorDiv.innerHTML = error;
-      urlInput.classList.add('is-invalid');
-    });
+    urlInput.classList.add('is-invalid');
+    errorDiv.classList.add('alert', 'alert-light', 'mt-2');
+    errorDiv.setAttribute('role', 'alert');
+    errorDiv.innerHTML = t(errors);
   });
 
   watch(form, 'processState', () => {
@@ -51,6 +47,8 @@ export default (state) => {
 
   watch(state, 'feedList', () => {
     const { feedList, postList } = state;
+    const feedDiv = document.getElementById('feedDiv');
+    const postDiv = document.getElementById('postDiv');
     const feeds = document.createElement('ul');
     feeds.classList.add('list-group');
     const postsUl = document.createElement('ul');
@@ -65,7 +63,7 @@ export default (state) => {
       feeds.append(feedEl);
 
       const filteredPosts = postList.filter((p) => p.id === feedListId);
-      console.log(filteredPosts);
+
       filteredPosts.forEach(({ posts }) => {
         posts.forEach((post) => {
           const postEl = document.createElement('li');

@@ -1,32 +1,28 @@
 import _ from 'lodash';
 import * as yup from 'yup';
-// import i18next from 'i18next';
+import i18next from 'i18next';
 import axios from 'axios';
-// import resources from './locales';
+import resources from './locales';
 import rssParser from './parser';
 import watch from './watchers';
 
-const validateUrl = (currentUrl, urlList) => {
-  const errors = [];
-
+const isValidUrlState = (state) => {
+  const { urlList, form } = state;
+  const currentUrl = form.urlValue;
   return yup.string().url().validate(currentUrl)
     .catch(() => {
-      errors.push('This URL is not Valid');
+      form.errors = 'errors.url';
+      form.valid = false;
+      console.log(form.errors);
     })
     .then(() => yup.mixed().notOneOf(urlList).validate(currentUrl))
     .catch(() => {
-      errors.push('This URL is already in the list');
+      form.errors = 'errors.duplication';
+      form.valid = false;
+      console.log(form.errors);
     })
-    .then(() => errors);
-};
-
-const isValidUrlState = (state) => {
-  const { form, urlList } = state;
-  const currentUrl = form.urlValue;
-  validateUrl(currentUrl, urlList)
-    .then((errors) => {
-      form.errors = errors;
-      form.valid = _.isEqual(errors, []);
+    .then(() => {
+      form.valid = 'true';
     });
 };
 
@@ -54,7 +50,7 @@ const getFeed = (currentUrl, state) => {
     })
     .catch(() => {
       form.valid = false;
-      form.errors.push('There must be a Network problem');
+      form.errors = 'errors.network';
       form.processState = 'processed';
     });
 };
@@ -72,6 +68,13 @@ export default () => {
     postList: [],
   };
 
+  i18next.init({
+    lng: 'en',
+    debug: false,
+    resources,
+  })
+    .then((t) => watch(state, t));
+
   const form = document.getElementById('form');
   const urlInput = document.getElementById('urlInput');
 
@@ -88,6 +91,4 @@ export default () => {
     state.form.valid = true;
     getFeed(currentUrl, state);
   });
-
-  watch(state);
 };
