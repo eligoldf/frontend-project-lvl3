@@ -20,10 +20,16 @@
         </form>
       </div>
      </div>
-     <div class="row mb-3 mx-auto">
-      <div class="col-md-4" id="feedDiv"></div>
-      <div class="col-md-8" id="postDiv"></div>
-    </div>
+     <div class="container">
+     <div class="row" id="rssContainer">
+       <div class="col-6">
+         <div data-container="feeds"></div>
+       </div>
+       <div class="col-6">
+         <ul data-container="posts" class="list-group list-group-flush"></ul>
+       </div>
+      </div>
+     </div>
     </div>
     </div>
   </body>

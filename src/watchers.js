@@ -1,22 +1,25 @@
 import { watch } from 'melanke-watchjs';
+import i18next from 'i18next';
 
-export default (state, t) => {
+export default (state) => {
   const { form } = state;
   const submitBtn = document.getElementById('submitBtn');
   const urlInput = document.getElementById('urlInput');
-  const errorDiv = document.getElementById('errorDiv');
 
   watch(form, 'errors', () => {
     const { errors } = form;
+    const errorDiv = document.getElementById('errorDiv');
 
     if (errors.length === 0 || form.urlValue === '') {
+      errorDiv.remove();
       urlInput.classList.remove('is-invalid');
       urlInput.innerHTML = '';
     }
+
     urlInput.classList.add('is-invalid');
     errorDiv.classList.add('alert', 'alert-light', 'mt-2');
     errorDiv.setAttribute('role', 'alert');
-    errorDiv.innerHTML = t(errors);
+    errorDiv.innerHTML = i18next.t(errors);
   });
 
   watch(form, 'processState', () => {
@@ -45,35 +48,38 @@ export default (state, t) => {
     urlInput.value = form.urlValue;
   });
 
-  watch(state, 'feedList', () => {
-    const { feedList, postList } = state;
-    const feedDiv = document.getElementById('feedDiv');
-    const postDiv = document.getElementById('postDiv');
-    const feeds = document.createElement('ul');
-    feeds.classList.add('list-group');
-    const postsUl = document.createElement('ul');
-    postsUl.classList.add('list-group');
 
-    feedList.forEach(({ id, title, description }) => {
-      const feedListId = id;
-      const feedEl = document.createElement('li');
-      feedEl.classList.add('list-group-item');
-      feedEl.innerHTML = `<h4>${title}</h4>
-                    <div>${description}</div>`;
-      feeds.append(feedEl);
+  watch(state, 'posts', () => {
+    const { feeds, posts } = state;
+    const feedContainer = document.querySelector('[data-container="feeds"]');
+    const postsContainer = document.querySelector('[data-container="posts"]');
+    feedContainer.innerHTML = '';
+    postsContainer.innerHTML = '';
 
-      const filteredPosts = postList.filter((p) => p.id === feedListId);
+    feeds.forEach((feed) => {
+      const feedBlock = document.createElement('div');
+      feedContainer.appendChild(feedBlock);
+      const feedTitle = document.createElement('h5');
+      feedTitle.innerHTML = feed.title;
+      const feedDescription = document.createElement('p');
+      feedDescription.innerHTML = feed.description;
+      feedBlock.append(feedTitle, feedDescription);
 
-      filteredPosts.forEach(({ posts }) => {
-        posts.forEach((post) => {
-          const postEl = document.createElement('li');
-          postEl.classList.add('list-group-item');
-          postEl.innerHTML = `<a href="${post.link}">${post.title}</a>`;
-          postsUl.append(postEl);
-        });
+      const postsUl = document.createElement('ul');
+      postsUl.classList.add('list-unstyled');
+      postsContainer.appendChild(postsUl);
+
+      const postsByFeedId = posts.filter((post) => post.id === feed.id);
+
+      postsByFeedId.forEach((post) => {
+        const postsLi = document.createElement('li');
+        postsLi.classList.add('mt-2');
+        postsUl.appendChild(postsLi);
+        const postsLink = document.createElement('a');
+        postsLink.innerHTML = post.title;
+        postsLink.href = post.link;
+        postsLi.appendChild(postsLink);
       });
     });
-    feedDiv.append(feeds);
-    postDiv.append(postsUl);
   });
 };

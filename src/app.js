@@ -1,52 +1,71 @@
 import _ from 'lodash';
 import * as yup from 'yup';
-import i18next from 'i18next';
 import axios from 'axios';
-import resources from './locales';
+import i18next from 'i18next';
 import rssParser from './parser';
+import resources from './locales';
 import watch from './watchers';
 
 const isValidUrlState = (state) => {
-  const { urlList, form } = state;
-  const currentUrl = form.urlValue;
-  return yup.string().url().validate(currentUrl)
+  const { form, feeds } = state;
+  const url = form.urlValue;
+  return yup.string().url().validate(url)
     .catch(() => {
       form.errors = 'errors.url';
       form.valid = false;
-      console.log(form.errors);
     })
-    .then(() => yup.mixed().notOneOf(urlList).validate(currentUrl))
+    .then(() => yup.mixed().notOneOf(feeds).validate(url))
     .catch(() => {
       form.errors = 'errors.duplication';
       form.valid = false;
-      console.log(form.errors);
     })
     .then(() => {
       form.valid = 'true';
     });
 };
 
-const updateFeed = (currentUrl, data, state) => {
+const createFeed = (url, data, state) => {
   const { title, description, posts } = data;
-  const {
-    feedList, postList, urlList,
-  } = state;
   const id = _.uniqueId();
-  urlList.push({ id, currentUrl });
-  feedList.push({ id, title, description });
-  postList.push({ id, posts });
-  console.log(postList);
+  const newFeed = {
+    id, title, description, url,
+  };
+  const newPosts = posts.map((post) => ({ id, ...post }));
+  state.feeds.push(newFeed);
+  state.posts.push(...newPosts);
 };
 
-const getFeed = (currentUrl, state) => {
-  const corsProxy = 'https://cors-anywhere.herokuapp.com';
+const corsProxy = 'https://cors-anywhere.herokuapp.com';
+
+const getNewPosts = (url, state) => {
+  const { form, feeds, posts } = state;
+  const feedToAdd = feeds.find((feed) => feed.url === url);
+  const oldPosts = posts.filter(({ id }) => id === feedToAdd.id);
+
+  axios.get(`${corsProxy}/${url}`)
+    .then(({ data }) => {
+      const { posts: newPosts } = rssParser(data);
+      const postsDifference = _.differenceBy(newPosts, oldPosts, 'title');
+      const postsToAdd = postsDifference.map((post) => ({ id: feedToAdd.id, ...post }));
+      posts.unshift(...postsToAdd);
+    })
+    .catch(() => {
+      form.valid = false;
+      form.errors = 'errors.feed';
+      form.processState = 'processed';
+    })
+    .then(() => setTimeout(() => getNewPosts(url, state), 5000));
+};
+
+const getFeed = (url, state) => {
   const { form } = state;
-  axios.get(`${corsProxy}/${currentUrl}`)
+  axios.get(`${corsProxy}/${url}`)
     .then(({ data }) => {
       const feedData = rssParser(data);
+      createFeed(url, feedData, state);
       form.processState = 'processed';
-      updateFeed(currentUrl, feedData, state);
       form.valid = true;
+      setTimeout(() => getNewPosts(url, state), 5000);
     })
     .catch(() => {
       form.valid = false;
@@ -56,39 +75,38 @@ const getFeed = (currentUrl, state) => {
 };
 
 export default () => {
-  const state = {
-    form: {
-      processState: 'filling',
-      valid: false,
-      urlValue: '',
-      errors: [],
-    },
-    urlList: [],
-    feedList: [],
-    postList: [],
-  };
-
   i18next.init({
     lng: 'en',
     debug: false,
     resources,
   })
-    .then((t) => watch(state, t));
+    .then(() => {
+      const state = {
+        form: {
+          processState: 'filling',
+          valid: false,
+          urlValue: '',
+          errors: [],
+        },
+        feeds: [],
+        posts: [],
+      };
 
-  const form = document.getElementById('form');
-  const urlInput = document.getElementById('urlInput');
+      const form = document.getElementById('form');
+      const urlInput = document.getElementById('urlInput');
 
-  urlInput.addEventListener('input', (e) => {
-    state.form.urlValue = e.target.value;
-    isValidUrlState(state);
-  });
+      urlInput.addEventListener('input', (e) => {
+        state.form.urlValue = e.target.value;
+        isValidUrlState(state);
+      });
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const currentUrl = state.form.urlValue;
-    console.log(currentUrl);
-    state.form.processState = 'processing';
-    state.form.valid = true;
-    getFeed(currentUrl, state);
-  });
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const url = state.form.urlValue;
+        state.form.processState = 'processing';
+        state.form.valid = true;
+        getFeed(url, state);
+      });
+      watch(state);
+    });
 };

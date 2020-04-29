@@ -1,15 +1,18 @@
 export default (data) => {
-  const domparser = new DOMParser();
-  const doc = domparser.parseFromString(data, 'text/xml');
+  const domParser = new DOMParser();
+  const doc = domParser.parseFromString(data, 'text/xml');
 
-  const posts = [...doc.querySelectorAll('item')]
-    .map((post) => ({
-      title: post.querySelector('title').textContent,
-      link: post.querySelector('link').textContent,
-    }));
+  const items = doc.querySelectorAll('item');
+  const posts = [...items].map((item) => {
+    const link = item.querySelector('link').textContent;
+    const title = item.querySelector('title').textContent;
+    return { link, title };
+  });
 
   const title = doc.querySelector('title').textContent;
   const description = doc.querySelector('description').textContent;
 
-  return { title, description, posts };
+  const feedData = { title, description, posts };
+
+  return feedData;
 };
