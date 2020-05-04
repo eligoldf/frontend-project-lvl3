@@ -28,7 +28,7 @@ export default (state) => {
     submitBtn.disabled = !form.valid;
   });
 
-  watch(form, 'field', () => {
+  watch(form, 'urlValue', () => {
     urlInput.value = form.urlValue;
   });
 
