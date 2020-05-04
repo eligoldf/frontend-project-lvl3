@@ -6,21 +6,25 @@ import rssParser from './parser';
 import resources from './locales';
 import watch from './watchers';
 
+const validateUrl = (url, urlList) => yup.string()
+  .url()
+  .notOneOf(urlList)
+  .validate(url);
+
 const isValidUrlState = (state) => {
-  const { form, feeds } = state;
-  const url = form.urlValue;
-  return yup.string().url().validate(url)
-    .catch(() => {
-      form.errors = 'errors.url';
-      form.valid = false;
-    })
-    .then(() => yup.mixed().notOneOf(feeds).validate(url))
-    .catch(() => {
-      form.errors = 'errors.duplication';
-      form.valid = false;
-    })
+  const { form } = state;
+  const currentUrl = form.urlValue;
+  const urlList = state.feeds.map(({ url }) => url);
+
+  return validateUrl(currentUrl, urlList)
     .then(() => {
-      form.valid = 'true';
+      form.valid = true;
+      form.errors = '';
+    })
+    .catch(({ type }) => {
+      form.errors = type;
+      form.valid = false;
+      form.processState = 'processed';
     });
 };
 
@@ -39,19 +43,21 @@ const corsProxy = 'https://cors-anywhere.herokuapp.com';
 
 const getNewPosts = (url, state) => {
   const { form, feeds, posts } = state;
-  const feedToAdd = feeds.find((feed) => feed.url === url);
-  const oldPosts = posts.filter(({ id }) => id === feedToAdd.id);
+  const feedToUpdate = feeds.find((feed) => feed.url === url);
+  const oldPosts = posts.filter(({ id }) => id === feedToUpdate.id);
 
   axios.get(`${corsProxy}/${url}`)
     .then(({ data }) => {
       const { posts: newPosts } = rssParser(data);
       const postsDifference = _.differenceBy(newPosts, oldPosts, 'title');
-      const postsToAdd = postsDifference.map((post) => ({ id: feedToAdd.id, ...post }));
-      posts.unshift(...postsToAdd);
+      const postsToUpdate = postsDifference.map((post) => ({ id: feedToUpdate.id, ...post }));
+      posts.unshift(...postsToUpdate);
+      form.processState = 'processed';
+      form.errors = '';
     })
     .catch(() => {
       form.valid = false;
-      form.errors = 'errors.feed';
+      form.errors = 'feed';
       form.processState = 'processed';
     })
     .then(() => setTimeout(() => getNewPosts(url, state), 5000));
@@ -65,11 +71,12 @@ const getFeed = (url, state) => {
       createFeed(url, feedData, state);
       form.processState = 'processed';
       form.valid = true;
+      form.errors = '';
       setTimeout(() => getNewPosts(url, state), 5000);
     })
     .catch(() => {
       form.valid = false;
-      form.errors = 'errors.network';
+      form.errors = 'network';
       form.processState = 'processed';
     });
 };

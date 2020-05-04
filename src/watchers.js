@@ -6,22 +6,6 @@ export default (state) => {
   const submitBtn = document.getElementById('submitBtn');
   const urlInput = document.getElementById('urlInput');
 
-  watch(form, 'errors', () => {
-    const { errors } = form;
-    const errorDiv = document.getElementById('errorDiv');
-
-    if (errors.length === 0 || form.urlValue === '') {
-      errorDiv.remove();
-      urlInput.classList.remove('is-invalid');
-      urlInput.innerHTML = '';
-    }
-
-    urlInput.classList.add('is-invalid');
-    errorDiv.classList.add('alert', 'alert-light', 'mt-2');
-    errorDiv.setAttribute('role', 'alert');
-    errorDiv.innerHTML = i18next.t(errors);
-  });
-
   watch(form, 'processState', () => {
     const { processState } = form;
     switch (processState) {
@@ -46,6 +30,19 @@ export default (state) => {
 
   watch(form, 'field', () => {
     urlInput.value = form.urlValue;
+  });
+
+  watch(form, 'errors', () => {
+    const { errors } = form;
+    const errorDiv = document.getElementById('errorDiv');
+
+    if (errors === '' || urlInput.value === '') {
+      errorDiv.innerHTML = '';
+      urlInput.classList.remove('is-invalid');
+    } else {
+      errorDiv.innerHTML = i18next.t(`errors.${errors}`);
+      urlInput.classList.add('is-invalid');
+    }
   });
 
 
