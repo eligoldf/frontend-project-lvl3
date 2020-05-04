@@ -93,7 +93,7 @@ export default () => {
           processState: 'filling',
           valid: false,
           urlValue: '',
-          errors: [],
+          errors: '',
         },
         feeds: [],
         posts: [],
