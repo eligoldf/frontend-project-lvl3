@@ -36,13 +36,15 @@ export default (state) => {
     const { errors } = form;
     const errorDiv = document.getElementById('errorDiv');
 
-    if (errors === '' || urlInput.value === '') {
-      errorDiv.innerHTML = '';
+    if (errorDiv) {
       urlInput.classList.remove('is-invalid');
-    } else {
-      errorDiv.innerHTML = i18next.t(`errors.${errors}`);
-      urlInput.classList.add('is-invalid');
+      errorDiv.textContent = '';
     }
+
+    if (errors.length === 0 || urlInput.value === '') return;
+
+    errorDiv.innerHTML = errors.map((error) => i18next.t(`errors.${error}`)).join('');
+    urlInput.classList.add('is-invalid');
   });
 
 

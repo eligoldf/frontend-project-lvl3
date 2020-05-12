@@ -2,33 +2,32 @@ import _ from 'lodash';
 import * as yup from 'yup';
 import axios from 'axios';
 import i18next from 'i18next';
-import rssParser from './parser';
+import parseRss from './parser';
 import resources from './locales';
 import watch from './watchers';
 
 const validateUrl = (url, urlList) => yup.string()
   .url()
   .notOneOf(urlList)
-  .validate(url);
+  .validateSync(url);
 
-const isValidUrlState = (state) => {
+const updateValidationState = (state) => {
   const { form } = state;
   const currentUrl = form.urlValue;
   const urlList = state.feeds.map(({ url }) => url);
 
-  return validateUrl(currentUrl, urlList)
-    .then(() => {
-      form.valid = true;
-      form.errors = '';
-    })
-    .catch(({ type }) => {
-      form.errors = type;
-      form.valid = false;
-      form.processState = 'processed';
-    });
+  try {
+    validateUrl(currentUrl, urlList);
+    form.valid = true;
+    form.errors = [];
+  } catch (e) {
+    const error = e.type;
+    form.errors = [error];
+    form.valid = false;
+  }
 };
 
-const createFeed = (url, data, state) => {
+const addRssFeed = (url, data, state) => {
   const { title, description, posts } = data;
   const id = _.uniqueId();
   const newFeed = {
@@ -48,7 +47,7 @@ const getNewPosts = (url, state) => {
 
   axios.get(`${corsProxy}/${url}`)
     .then(({ data }) => {
-      const { posts: newPosts } = rssParser(data);
+      const { posts: newPosts } = parseRss(data);
       const postsDifference = _.differenceBy(newPosts, oldPosts, 'title');
       const postsToUpdate = postsDifference.map((post) => ({ id: feedToUpdate.id, ...post }));
       posts.unshift(...postsToUpdate);
@@ -57,27 +56,27 @@ const getNewPosts = (url, state) => {
     })
     .catch(() => {
       form.valid = false;
-      form.errors = 'feed';
-      form.processState = 'processed';
+      form.errors = ['feed'];
+      form.processState = 'processing';
     })
-    .then(() => setTimeout(() => getNewPosts(url, state), 5000));
+    .finally(() => setTimeout(() => getNewPosts(url, state), 5000));
 };
 
 const getFeed = (url, state) => {
   const { form } = state;
   axios.get(`${corsProxy}/${url}`)
     .then(({ data }) => {
-      const feedData = rssParser(data);
-      createFeed(url, feedData, state);
+      const feedData = parseRss(data);
+      addRssFeed(url, feedData, state);
       form.processState = 'processed';
       form.valid = true;
       form.errors = '';
-      setTimeout(() => getNewPosts(url, state), 5000);
+      getNewPosts(url, state);
     })
     .catch(() => {
       form.valid = false;
-      form.errors = 'network';
-      form.processState = 'processed';
+      form.errors = ['network'];
+      form.processState = 'processing';
     });
 };
 
@@ -104,16 +103,17 @@ export default () => {
 
       urlInput.addEventListener('input', (e) => {
         state.form.urlValue = e.target.value;
-        isValidUrlState(state);
+        updateValidationState(state);
       });
 
       form.addEventListener('submit', (e) => {
         e.preventDefault();
-        const url = state.form.urlValue;
-        state.form.processState = 'processing';
+        const formData = new FormData(e.target);
+        const url = formData.get('url');
         state.form.valid = true;
         getFeed(url, state);
       });
+
       watch(state);
     });
 };
