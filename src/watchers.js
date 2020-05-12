@@ -43,7 +43,7 @@ export default (state) => {
 
     if (errors.length === 0 || urlInput.value === '') return;
 
-    errorDiv.innerHTML = errors.map((error) => i18next.t(`errors.${error}`)).join('');
+    errorDiv.innerHTML = errors.map((error) => i18next.t(`errors.${error}`)).join();
     urlInput.classList.add('is-invalid');
   });
 
