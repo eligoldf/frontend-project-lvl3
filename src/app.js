@@ -8,6 +8,7 @@ import watch from './watchers';
 
 const validateUrl = (url, urlList) => yup.string()
   .url()
+  .required()
   .notOneOf(urlList)
   .validateSync(url);
 
