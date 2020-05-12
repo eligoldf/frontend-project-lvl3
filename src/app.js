@@ -53,7 +53,7 @@ const getNewPosts = (url, state) => {
       const postsToUpdate = postsDifference.map((post) => ({ id: feedToUpdate.id, ...post }));
       posts.unshift(...postsToUpdate);
       form.processState = 'processed';
-      form.errors = '';
+      form.errors = [];
     })
     .catch(() => {
       form.valid = false;
@@ -71,7 +71,7 @@ const getFeed = (url, state) => {
       addRssFeed(url, feedData, state);
       form.processState = 'processed';
       form.valid = true;
-      form.errors = '';
+      form.errors = [];
       getNewPosts(url, state);
     })
     .catch(() => {
