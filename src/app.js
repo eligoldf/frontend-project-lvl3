@@ -56,7 +56,6 @@ const getNewPosts = (url, state) => {
     })
     .catch(() => {
       form.errors = ['feed'];
-      form.processState = 'processing';
     })
     .finally(() => setTimeout(() => getNewPosts(url, state), 5000));
 };
