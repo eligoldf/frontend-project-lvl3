@@ -55,7 +55,6 @@ const getNewPosts = (url, state) => {
       form.processState = 'processed';
     })
     .catch(() => {
-      form.valid = false;
       form.errors = ['feed'];
       form.processState = 'processing';
     })
