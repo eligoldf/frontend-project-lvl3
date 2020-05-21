@@ -42,7 +42,7 @@ const addRssFeed = (url, data, state) => {
 const corsProxy = 'https://cors-anywhere.herokuapp.com';
 
 const getNewPosts = (url, state) => {
-  const { form, feeds, posts } = state;
+  const { feeds, posts } = state;
   const feedToUpdate = feeds.find((feed) => feed.url === url);
   const oldPosts = posts.filter(({ id }) => id === feedToUpdate.id);
 
@@ -52,12 +52,8 @@ const getNewPosts = (url, state) => {
       const postsDifference = _.differenceBy(newPosts, oldPosts, 'title');
       const postsToUpdate = postsDifference.map((post) => ({ id: feedToUpdate.id, ...post }));
       posts.unshift(...postsToUpdate);
-      form.processState = 'processed';
-    })
-    .catch(() => {
-      form.errors = ['feed'];
-    })
-    .finally(() => setTimeout(() => getNewPosts(url, state), 5000));
+    });
+  setTimeout(() => getNewPosts(url, state), 5000);
 };
 
 const getFeed = (url, state) => {
@@ -89,7 +85,7 @@ export default () => {
           processState: 'filling',
           valid: false,
           urlValue: '',
-          errors: '',
+          errors: [],
         },
         feeds: [],
         posts: [],
