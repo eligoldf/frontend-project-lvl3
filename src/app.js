@@ -52,8 +52,8 @@ const getNewPosts = (url, state) => {
       const postsDifference = _.differenceBy(newPosts, oldPosts, 'title');
       const postsToUpdate = postsDifference.map((post) => ({ id: feedToUpdate.id, ...post }));
       posts.unshift(...postsToUpdate);
-    });
-  setTimeout(() => getNewPosts(url, state), 5000);
+    })
+    .finally(setTimeout(() => getNewPosts(url, state), 5000));
 };
 
 const getFeed = (url, state) => {
