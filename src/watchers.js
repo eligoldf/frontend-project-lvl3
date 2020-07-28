@@ -47,7 +47,6 @@ export default (state) => {
     urlInput.classList.add('is-invalid');
   });
 
-
   watch(state, 'posts', () => {
     const { feeds, posts } = state;
     const feedContainer = document.querySelector('[data-container="feeds"]');
